@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Snooker Tracker v12.148 - ALT for redStageColor</title>
+  <style>
+    :root {
+      --bg:#111; --txt:#f5f5f5; --panel:#1d2330; --line:#2d364a;
+      --red:#d81f26; --yellow:#ffd400; --green:#138a36; --brown:#8b5a2b;
+      --blue:#1e5bd7; --pink:#ff4e9b; --black:#000;
+      --start-green: #2ecc71;
+      --swap-green: #27ae60;
+      --disabled:#666;
+      --warning:#ff4e9b;
+      --gold: #ffd700;
+      
+      --photo-size: 100px;
+      --photo-active: 115px;
+      --score-size: 64px;
+      --ball-size: 68px;
+      --ball-red-size: 74px;
+      --ball-black-size: 74px;
+      --button-height: 39px;
+      --foul-height: 35px;
+      --swap-button-height: 60px;
+      --font-base: 18px;
+      --font-status: 22px;
+      --font-small: 16px;
+      --font-large: 24px;
+      --font-break: 24px;
+      
+      --free-ball: #4a6fa5;
+      --undo: #f39c12;
+      --export: #27ae60;
+      --reset: #e74c3c;
+      --snooker: #9b59b6;
+      
+      --foul-4: #d81f26;
+      --foul-5: #1e5bd7;
+      --foul-6: #ff4e9b;
+      --foul-7: #000;
+      
+      --ball-on-glow: 0 0 15px 3px #ffd700;
+      --alt-color: #ffb347;
+      --break-color: #138a36;
+    }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+    
+    body { 
+      padding: 6px;
+      font-family:sans-serif; 
+      color:var(--txt); 
+      background:var(--bg); 
+      display:flex; 
+      flex-direction:column; 
+      box-sizing:border-box; 
+      height: 100vh;
+      height: -webkit-fill-available;
+    }
+    
+    .card { 
+      background:var(--panel); 
+      border:1px solid var(--line); 
+      border-radius:12px; 
+      padding:6px;
+      margin-bottom:4px;
+      position:relative; 
+    }
+    
+    input[type="text"], input[type="number"] { 
+      background:#0f1420; 
+      color:#fff; 
+      border:1px solid var(--line); 
+      padding:8px;
+      border-radius:8px; 
+      font-size:var(--font-base); 
+      width:100%; 
+      box-sizing:border-box; 
+      text-align:center; 
+      cursor: text;
+    }
+    input[type="number"]::-webkit-inner-spin-button, 
+    input[type="number"]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+
+    .player-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .player-box {
+      text-align: center;
+      flex: 1;
+    }
+    .photo-container {
+      width: var(--photo-size);
+      height: var(--photo-size);
+      margin: 0 auto 6px;
+      background: #222;
+      border-radius: 8px;
+      border: 2px solid var(--line);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.3s;
+    }
+    .photo-container:hover {
+      border-color: var(--start-green);
+    }
+    .active .photo-container {
+      width: var(--photo-active);
+      height: var(--photo-active);
+      border-color: var(--start-green);
+    }
+    .player-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .player-name-input {
+      font-size: var(--font-base);
+      font-weight: bold;
+      margin-bottom: 4px;
+      text-align: center;
+      cursor: text;
+      background: #0f1420;
+      color: #fff;
+      border: 1px solid var(--line);
+      padding: 6px;
+      border-radius: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .vs-divider {
+      font-size: 24px;
+      font-weight: bold;
+      opacity: 0.3;
+      margin: 0 8px;
+    }
+    
+    .score-row {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .score-box {
+      flex: 1;
+      position: relative;
+    }
+    .score-input {
+      width: 100%;
+      padding: 8px;
+      font-size: var(--font-large);
+      font-weight: 900;
+      text-align: center;
+      background: #0f1420;
+      color: #fff;
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      box-sizing: border-box;
+      cursor: text;
+    }
+    .score-input:focus {
+      outline: none;
+      border-color: var(--start-green);
+    }
+    .active .score-input {
+      border-color: var(--start-green);
+    }
+    .available-points {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: var(--font-small);
+      color: #aaa;
+      pointer-events: none;
+    }
+    
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.3);
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: var(--font-break);
+      font-weight: bold;
+      position: relative;
+      min-height: 44px;
+    }
+    .info-left {
+      margin-left: 30%;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .info-right {
+      margin-right: 20%;
+      display: flex;
+      align-items: center;
+    }
+    .break-value {
+      color: var(--break-color);
+      font-size: var(--font-break);
+      display: inline-block;
+      min-width: 30px;
+      text-align: left;
+    }
+    
+    .reds-row-compact {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.2);
+      padding: 4px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .reds-label {
+      font-size: var(--font-break);
+      font-weight: bold;
+      color: #fff;
+    }
+    .reds-input-box {
+      width: 70px;
+      background: #0f1420;
+      color: #fff;
+      border: 1px solid var(--line);
+      padding: 4px 4px;
+      border-radius: 6px;
+      text-align: center;
+      font-size: var(--font-break);
+      height: 36px;
+      box-sizing: border-box;
+    }
+    
+    @media (max-width: 600px) {
+      :root {
+        --font-break: 20px;
+      }
+      .reds-input-box {
+        width: 60px;
+      }
+      .info-left {
+        margin-left: 20%;
+      }
+      .info-right {
+        margin-right: 10%;
+      }
+    }
+    
+    .goal-line-label {
+      text-align: center;
+      font-size: var(--font-small);
+      color: #aaa;
+      margin-bottom: 2px;
+    }
+    .goal-line-values {
+      text-align: center;
+      font-size: var(--font-large);
+      font-weight: bold;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      margin-bottom: 8px;
+      justify-items: center;
+      align-items: center;
+    }
+    .btn-ball {
+      border: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      height: var(--ball-size);
+      width: var(--ball-size);
+      max-width: calc((100vw - 40px) / 7);
+      max-height: calc((100vw - 40px) / 7);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+      position: relative;
+      opacity: 1;
+      transition: opacity 0.3s, box-shadow 0.3s;
+    }
+    .btn-ball-red {
+      border: 0;
+      border-radius: 50%;
+      cursor: pointer;
+      background: var(--red);
+      height: var(--ball-red-size);
+      width: var(--ball-red-size);
+      max-width: calc((100vw - 40px) / 7);
+      max-height: calc((100vw - 40px) / 7);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+      position: relative;
+      opacity: 1;
+      transition: opacity 0.3s, box-shadow 0.3s;
+    }
+    .btn-ball#blackBtn {
+      background: var(--black);
+      height: var(--ball-black-size);
+      width: var(--ball-black-size);
+      border: 2px solid var(--gold);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+      transition: opacity 0.3s, box-shadow 0.3s;
+    }
+    .btn-ball.disabled, .btn-ball-red.disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .btn-gray.disabled, .btn-action.disabled, .btn-swap.disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    
+    .btn-ball.ball-on, .btn-ball-red.ball-on {
+      box-shadow: var(--ball-on-glow);
+    }
+
+    .foul-grid-top { 
+      display:grid; 
+      grid-template-columns:repeat(4, 1fr);
+      gap:5px;
+      margin-bottom:6px;
+    }
+    .btn-gray { 
+      color:#fff; 
+      border:0; 
+      padding:4px 0;
+      height:var(--foul-height); 
+      border-radius:6px;
+      font-weight:bold; 
+      cursor:pointer; 
+      font-size:var(--font-base); 
+      position:relative; 
+      text-transform: none; 
+      box-sizing: border-box;
+      width:100%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn-gray:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .btn-gray.foul-4 {
+      background: var(--foul-4);
+    }
+    .btn-gray.foul-5 {
+      background: var(--foul-5);
+    }
+    .btn-gray.foul-6 {
+      background: var(--foul-6);
+    }
+    .btn-gray.foul-7 {
+      background: var(--foul-7);
+      border: 2px solid var(--gold);
+      box-sizing: border-box;
+    }
+
+    .action-grid {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+    .btn-action {
+      color: #fff;
+      border: 0;
+      padding: 8px 0;
+      height: var(--button-height);
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+      position: relative;
+      text-align: center;
+      flex: 1;
+      min-width: 60px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn-action:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .btn-action#freeBallBtn {
+      background: var(--free-ball);
+    }
+    .btn-action#undoBtn {
+      background: var(--undo);
+    }
+    .btn-action#exportBtn {
+      background: var(--export);
+    }
+    .btn-action#resetBtn {
+      background: var(--reset);
+    }
+    .btn-action#snookerBtn {
+      background: var(--snooker);
+    }
+
+    .btn-swap {
+      background: var(--swap-green);
+      color: white;
+      border: 0;
+      padding: 12px 0;
+      height: var(--swap-button-height);
+      width: 100%;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 24px;
+      position: relative;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    }
+
+    .float-points, .float-txt {
+      position:absolute; top:-55px; left:50%; transform:translateX(-50%);
+      font-size:42px; font-weight:900; color:white;
+      text-shadow:2px 2px 4px black, 0 0 10px black;
+      pointer-events:none; animation:floatUp 2.2s ease-out forwards; z-index:1000;
+    }
+    .float-txt { font-size:28px; color:var(--start-green); }
+    .float-remove { 
+      position:absolute; top:-55px; left:50%; transform:translateX(-50%);
+      font-size:36px; font-weight:900; color:#ff4444;
+      text-shadow:2px 2px 4px black, 0 0 10px black;
+      pointer-events:none; animation:floatUp 2.2s ease-out forwards; z-index:1000;
+      white-space:nowrap;
+    }
+    .float-miss {
+      position:absolute; top:-55px; left:50%; transform:translateX(-50%);
+      font-size:32px; font-weight:900; color:#ff8c00;
+      text-shadow:2px 2px 4px black, 0 0 10px black;
+      pointer-events:none; animation:floatUp 2.2s ease-out forwards; z-index:1000;
+      white-space:nowrap;
+    }
+    @keyframes floatUp {
+      0% { transform:translateX(-50%) translateY(0); opacity:1; }
+      100% { transform:translateX(-50%) translateY(-120px); opacity:0; }
+    }
+
+    #matchLog { 
+      flex: 1 1 auto;
+      background:#0a0e17; 
+      padding:6px;
+      border-radius:8px; 
+      border:1px solid var(--line); 
+      font-family:monospace; 
+      font-size:14px; 
+      color:#aaa; 
+      overflow-y:auto; 
+      min-height: 200px;
+      max-height: 300px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    #matchLog div {
+      margin-bottom: 2px !important;
+      line-height: 1.3;
+    }
+    
+    .main-container {
+      flex-grow:1; 
+      display:flex; 
+      flex-direction:column; 
+      overflow:hidden;
+      height: 100%;
+    }
+    
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <div class="card">
+      <div class="player-row">
+        <div id="p0-box" class="player-box">
+          <div class="photo-container" onclick="document.getElementById('p0-up').click()">
+            <img id="p0-img" class="player-photo">
+          </div>
+          <input type="file" id="p0-up" class="hidden" accept="image/*" onchange="previewImg(event, 0)">
+          <input type="text" id="p0-name" class="player-name-input" value="John" onclick="this.value=''" onchange="updateNames()">
+        </div>
+        
+        <div class="vs-divider">VS</div>
+        
+        <div id="p1-box" class="player-box">
+          <div class="photo-container" onclick="document.getElementById('p1-up').click()">
+            <img id="p1-img" class="player-photo">
+          </div>
+          <input type="file" id="p1-up" class="hidden" accept="image/*" onchange="previewImg(event, 1)">
+          <input type="text" id="p1-name" class="player-name-input" value="Jane" onclick="this.value=''" onchange="updateNames()">
+        </div>
+      </div>
+      
+      <div class="score-row">
+        <div class="score-box" id="p0-score-box">
+          <input type="number" id="p0-score-input" class="score-input" value="0" min="0" onclick="this.value=''" onchange="updateScoresFromInput()">
+          <span class="available-points" id="p0-available">147</span>
+        </div>
+        <div class="score-box" id="p1-score-box">
+          <input type="number" id="p1-score-input" class="score-input" value="0" min="0" onclick="this.value=''" onchange="updateScoresFromInput()">
+          <span class="available-points" id="p1-available">147</span>
+        </div>
+      </div>
+      
+      <div class="info-row">
+        <span class="info-left">Break: <span class="break-value" id="stkDisp">0</span></span>
+        <span class="info-right">
+          <div class="reds-row-compact">
+            <span class="reds-label">Reds Left:</span>
+            <input type="number" id="redsInput" class="reds-input-box" value="15" min="0" max="15" onclick="this.value=''" onchange="updateRedsFromInput()">
+          </div>
+        </span>
+      </div>
+      
+      <div class="goal-line-label">Goal Line Needs</div>
+      <div class="goal-line-values" id="statusLine">John 0, Jane 0</div>
+    </div>
+
+    <div class="card" id="ballCard">
+      <div class="grid">
+        <button id="redBtn" class="btn-ball-red" style="touch-action:none;"></button>
+        <button id="yellowBtn" class="btn-ball" style="background:var(--yellow);touch-action:none;"></button>
+        <button id="greenBtn" class="btn-ball" style="background:var(--green);touch-action:none;"></button>
+        <button id="brownBtn" class="btn-ball" style="background:var(--brown);touch-action:none;"></button>
+        <button id="blueBtn" class="btn-ball" style="background:var(--blue);touch-action:none;"></button>
+        <button id="pinkBtn" class="btn-ball" style="background:var(--pink);touch-action:none;"></button>
+        <button id="blackBtn" class="btn-ball" style="background:var(--black);touch-action:none;"></button>
+      </div>
+      
+      <div class="foul-grid-top">
+        <button class="btn-gray foul-4" id="foulBtn4" onclick="window.foul(4)">F+4</button>
+        <button class="btn-gray foul-5" id="foulBtn5" onclick="window.foul(5)">F+5</button>
+        <button class="btn-gray foul-6" id="foulBtn6" onclick="window.foul(6)">F+6</button>
+        <button class="btn-gray foul-7" id="foulBtn7" onclick="window.foul(7)">F+7</button>
+      </div>
+
+      <div class="action-grid">
+        <button class="btn-action" id="freeBallBtn" onclick="window.toggleFreeBall()">Free Ball</button>
+        <button class="btn-action" id="undoBtn" style="touch-action:none;">↶ Undo</button>
+        <button class="btn-action" id="exportBtn" onclick="window.exportLog()">Export Log</button>
+        <button class="btn-action" id="resetBtn" style="touch-action:none;">Reset</button>
+        <button class="btn-action" id="snookerBtn" onclick="window.snooker()">Snooker</button>
+      </div>
+
+      <button class="btn-swap" id="swapBtn" style="touch-action:none;">⇄ SWAP ⇄</button>
+    </div>
+    
+    <div id="matchLog"></div>
+  </div>
+
+  <script>
+    // ========== STATE VARIABLES ==========
+    let names = ["John", "Jane"];
+    let scores = [0, 0];
+    let reds = 15;
+    let active = 0;
+    let history = [];
+    let redoHistory = [];
+    let undoRedoMode = 'undo';
+    let colorOwed = false;
+    let remainingColors = [];
+    let streak = 0;
+    
+    let freeBallMode = false;
+    let freeBallAvailable = false;
+    let inColorStage = false;
+    let lastRedPotted = false;
+    let colorAfterLastRed = false;
+    let snookers = [0, 0];
+    let frameOverLogged = false;
+    let newFramePending = false;
+
+    let foulPointsReceived = [0, 0];
+    let swapCounter = 0;
+    
+    let doubleTapValid = true;
+    let lastTapTime = 0;
+
+    const ballNames = {1:"Red",2:"Yellow",3:"Green",4:"Brown",5:"Blue",6:"Pink",7:"Black"};
+    const ballFloatColors = {1:'#ff4444',2:'#ffd400',3:'#138a36',4:'#8b5a2b',5:'#4a90d9',6:'#ff4e9b',7:'#ffd700'};
+    const foulFloatColors = {4:'#d81f26',5:'#4a90d9',6:'#ff4e9b',7:'#ffd700'};
+    const ballButtons = {1:document.getElementById('redBtn'),2:document.getElementById('yellowBtn'),3:document.getElementById('greenBtn'),4:document.getElementById('brownBtn'),5:document.getElementById('blueBtn'),6:document.getElementById('pinkBtn'),7:document.getElementById('blackBtn')};
+
+    function disableDoubleTap() { doubleTapValid = false; }
+    function enableDoubleTap() { doubleTapValid = true; }
+
+    // ========== NORMALIZATION RULE ==========
+    function normalizeGameState() {
+      if (reds === 0) {
+        inColorStage = true;
+        colorAfterLastRed = false;
+        lastRedPotted = false;
+        remainingColors = freshColors();
+        colorOwed = false;
+      } else {
+        inColorStage = false;
+        colorAfterLastRed = false;
+        lastRedPotted = false;
+        remainingColors = freshColors();
+        colorOwed = false;
+      }
+      streak = 0;
+      freeBallMode = false;
+      freeBallAvailable = false;
+      document.getElementById('freeBallBtn').innerText = "Free Ball";
+      updateButtonStates();
+      updateUI();
+    }
+
+    // ========== RED BALL THREE-TIER PRESS ==========
+    (function setupRedBall() {
+      const btn = document.getElementById('redBtn');
+      let missTimer=null, removeTimer=null, actionDone=false, missPreview=false;
+      function showFloat(className,text){const f=document.createElement('div');f.className=className;f.innerText=text;btn.appendChild(f);setTimeout(()=>{if(f.parentNode)f.parentNode.removeChild(f);},2200);}
+      function startPress(e){if(btn.classList.contains('disabled'))return;e.preventDefault();actionDone=false;if(!colorOwed){missTimer=setTimeout(()=>{missPreview=true;showFloat('float-miss','MISS?');},500);}removeTimer=setTimeout(()=>{actionDone=true;missPreview=false;clearTimeout(missTimer);missTimer=null;showFloat('float-remove','-R');window._removeRedFromBtn(btn);},3000);}
+      function endPress(e){e.preventDefault();clearTimeout(missTimer);clearTimeout(removeTimer);missTimer=null;removeTimer=null;if(actionDone){actionDone=false;return;}if(missPreview){missPreview=false;checkNewFrame();saveState();showFloat('float-miss','MISS');addLogEntry(`${names[active]} missed Red`, true);streak=0;colorOwed=false;active=1-active;resetSwapCounter();disableDoubleTap();logSwap(names[active], false);freeBallMode=false;document.getElementById('freeBallBtn').innerText="Free Ball";updateButtonStates();updateUI();return;}window.pot(1,btn);}
+      function cancelPress(e){clearTimeout(missTimer);clearTimeout(removeTimer);missTimer=null;removeTimer=null;actionDone=false;missPreview=false;}
+      btn.addEventListener('touchstart',startPress,{passive:false});btn.addEventListener('touchend',endPress,{passive:false});btn.addEventListener('touchcancel',cancelPress,{passive:false});btn.addEventListener('mousedown',startPress);btn.addEventListener('mouseup',endPress);btn.addEventListener('mouseleave',cancelPress);
+    })();
+
+    // ========== COLOR BALL PRESS LOGIC ==========
+    function setupColorLongPress(btn,ballValue){if(!btn)return;let missTimer=null,removeTimer=null,actionDone=false,wrongBallPreview=false;
+      function startPress(e){if(btn.classList.contains('disabled'))return;e.preventDefault();actionDone=false;wrongBallPreview=false;missTimer=setTimeout(()=>{const isBallOn=!inColorStage||remainingColors[0]===ballValue;if(isBallOn){actionDone=true;clearTimeout(removeTimer);checkNewFrame();saveState();const f=document.createElement('div');f.className='float-miss';f.innerText='MISS';btn.appendChild(f);setTimeout(()=>{if(f.parentNode)f.parentNode.removeChild(f);},2200);addLogEntry(`${names[active]} missed ${ballNames[ballValue]}`, true);if(colorAfterLastRed){colorAfterLastRed=false;lastRedPotted=false;inColorStage=true;remainingColors=freshColors();}streak=0;colorOwed=false;active=1-active;resetSwapCounter();disableDoubleTap();logSwap(names[active], false);freeBallMode=false;document.getElementById('freeBallBtn').innerText='Free Ball';updateButtonStates();updateUI();}else{wrongBallPreview=true;const foulValue=Math.max(4,ballValue);const f=document.createElement('div');f.className='float-miss';f.innerText='F+'+foulValue+'?';btn.appendChild(f);setTimeout(()=>{if(f.parentNode)f.parentNode.removeChild(f);},2200);if(inColorStage&&ballValue!==7){removeTimer=setTimeout(()=>{actionDone=true;wrongBallPreview=false;checkNewFrame();saveState();const toRemove=remainingColors.filter(c=>c<=ballValue);toRemove.sort((a,b)=>a-b);toRemove.forEach(c=>{const idx=remainingColors.indexOf(c);if(idx!==-1)remainingColors.splice(idx,1);});const ballBtnIds={2:'yellowBtn',3:'greenBtn',4:'brownBtn',5:'blueBtn',6:'pinkBtn'};toRemove.forEach((c,i)=>{setTimeout(()=>{const targetBtn=document.getElementById(ballBtnIds[c]);if(!targetBtn)return;const f=document.createElement('div');f.className='float-remove';f.innerText='-'+ballNames[c].charAt(0);targetBtn.appendChild(f);setTimeout(()=>{if(f.parentNode)f.parentNode.removeChild(f);},2200);},i*150);});const removedNames=toRemove.map(c=>ballNames[c]).join(', ');const remaining=remainingColors.map(c=>ballNames[c]).join(', ')||'none';addLogEntry(`Removed from table: ${removedNames} (${remaining} remaining)`, false);if(remainingColors.length===0)inColorStage=false;updateButtonStates();updateUI();},2500);}}},500);}
+      function endPress(e){e.preventDefault();clearTimeout(missTimer);clearTimeout(removeTimer);missTimer=null;removeTimer=null;if(actionDone){actionDone=false;return;}if(wrongBallPreview){wrongBallPreview=false;checkNewFrame();saveState();const foulValue=Math.max(4,ballValue);scores[1-active]+=foulValue;freeBallAvailable=true;resetSwapCounter();disableDoubleTap();addFoulLogEntry(active, 1-active, foulValue);if(colorAfterLastRed){colorAfterLastRed=false;lastRedPotted=false;inColorStage=true;remainingColors=freshColors();}streak=0;colorOwed=false;active=1-active;logSwap(names[active], false);freeBallMode=false;document.getElementById('freeBallBtn').innerText='Free Ball';updateButtonStates();updateUI();return;}window.pot(ballValue,btn);}
+      function cancelPress(e){clearTimeout(missTimer);clearTimeout(removeTimer);missTimer=null;removeTimer=null;actionDone=false;wrongBallPreview=false;}
+      btn.addEventListener('touchstart',startPress,{passive:false});btn.addEventListener('touchend',endPress,{passive:false});btn.addEventListener('touchcancel',cancelPress,{passive:false});btn.addEventListener('mousedown',startPress);btn.addEventListener('mouseup',endPress);btn.addEventListener('mouseleave',cancelPress);
+    }
+    setupColorLongPress(document.getElementById('yellowBtn'),2);setupColorLongPress(document.getElementById('greenBtn'),3);setupColorLongPress(document.getElementById('brownBtn'),4);setupColorLongPress(document.getElementById('blueBtn'),5);setupColorLongPress(document.getElementById('pinkBtn'),6);setupColorLongPress(document.getElementById('blackBtn'),7);
+
+    // ========== SWAP BUTTON ==========
+    (function setupSwapBtn() {
+      const btn = document.getElementById('swapBtn');
+      let frameEndTimer = null;
+      let actionDone = false;
+
+      function startPress(e) {
+        e.preventDefault();
+        actionDone = false;
+        frameEndTimer = setTimeout(function() {
+          actionDone = true;
+          names[0] = document.getElementById('p0-name').value || "John";
+          names[1] = document.getElementById('p1-name').value || "Jane";
+          scores[0] = parseInt(document.getElementById('p0-score-input').value || "0", 10);
+          scores[1] = parseInt(document.getElementById('p1-score-input').value || "0", 10);
+          saveState();
+          const winner = scores[0] > scores[1] ? names[0] : scores[1] > scores[0] ? names[1] : null;
+          const finalScore0 = scores[0];
+          const finalScore1 = scores[1];
+          showTxtFloat(btn, '🏆');
+          scores = [0, 0];
+          reds = 15;
+          active = 0;
+          colorOwed = false;
+          inColorStage = false;
+          lastRedPotted = false;
+          colorAfterLastRed = false;
+          freeBallMode = false;
+          freeBallAvailable = false;
+          streak = 0;
+          snookers = [0, 0];
+          frameOverLogged = false;
+          newFramePending = false;
+          remainingColors = freshColors();
+          foulPointsReceived = [0, 0];
+          swapCounter = 0;
+          enableDoubleTap();
+          document.getElementById('p0-score-input').value = "0";
+          document.getElementById('p1-score-input').value = "0";
+          document.getElementById('redsInput').value = "15";
+          document.getElementById('freeBallBtn').innerText = "Free Ball";
+          const winnerScore = finalScore0 > finalScore1 ? finalScore0 : finalScore1;
+          const loserScore = finalScore0 > finalScore1 ? finalScore1 : finalScore0;
+          if (winner) addLogEntry(`Frame over - ${winner} wins (${winnerScore} - ${loserScore})`, false);
+          else addLogEntry(`Frame over - Tie (${finalScore0} - ${finalScore1})`, false);
+          newFramePending = true;
+          updateButtonStates();
+          updateUI();
+        }, 3000);
+      }
+
+      let singleTapTimer = null;
+
+      function endPress(e) {
+        e.preventDefault();
+        clearTimeout(frameEndTimer);
+        frameEndTimer = null;
+        if (actionDone) {
+          actionDone = false;
+          return;
+        }
+
+        const now = Date.now();
+
+        if (doubleTapValid && lastTapTime > 0 && (now - lastTapTime < 300)) {
+          clearTimeout(singleTapTimer);
+          singleTapTimer = null;
+          lastTapTime = 0;
+          active = 1 - active;
+          disableDoubleTap();
+          updateUI();
+          showTxtFloat(btn, '⇄');
+          return;
+        }
+
+        lastTapTime = now;
+        clearTimeout(singleTapTimer);
+        singleTapTimer = setTimeout(function() {
+          singleTapTimer = null;
+          lastTapTime = 0;
+          window.swap();
+        }, 300);
+      }
+
+      function cancelPress(e) {
+        clearTimeout(frameEndTimer);
+        frameEndTimer = null;
+        actionDone = false;
+      }
+
+      btn.addEventListener('touchstart', startPress, { passive: false });
+      btn.addEventListener('touchend', endPress, { passive: false });
+      btn.addEventListener('touchcancel', cancelPress, { passive: false });
+      btn.addEventListener('mousedown', startPress);
+      btn.addEventListener('mouseup', endPress);
+      btn.addEventListener('mouseleave', cancelPress);
+    })();
+    
+    // ========== UNDO/REDO BUTTON ==========
+    (function setupUndoRedoBtn(){const btn=document.getElementById('undoBtn');let toggleTimer=null,longPressTriggered=false;function startPress(e){if(btn.classList.contains('disabled'))return;e.preventDefault();longPressTriggered=false;toggleTimer=setTimeout(()=>{longPressTriggered=true;undoRedoMode=undoRedoMode==='undo'?'redo':'undo';if(undoRedoMode==='undo'){btn.innerText='↶ Undo';showTxtFloat(btn,'Undo mode');}else{btn.innerText='↷ Redo';showTxtFloat(btn,'Redo mode');}addLogEntry(`Undo/Redo mode: ${undoRedoMode==='undo'?'Undo':'Redo'}`, false);},600);}function endPress(e){e.preventDefault();if(toggleTimer){clearTimeout(toggleTimer);toggleTimer=null;}if(!longPressTriggered){if(undoRedoMode==='undo')undo();else redo();}longPressTriggered=false;}function cancelPress(e){if(toggleTimer){clearTimeout(toggleTimer);toggleTimer=null;}longPressTriggered=false;}btn.addEventListener('touchstart',startPress,{passive:false});btn.addEventListener('touchend',endPress,{passive:false});btn.addEventListener('touchcancel',cancelPress,{passive:false});btn.addEventListener('mousedown',startPress);btn.addEventListener('mouseup',endPress);btn.addEventListener('mouseleave',cancelPress);})();
+    
+    // ========== HELPER FUNCTIONS ==========
+    function checkNewFrame(){if(newFramePending){newFramePending=false;document.getElementById('matchLog').innerHTML='';addLogEntry(`New frame: ${names[0]} vs ${names[1]}`, false);}}
+    function resetFrameSilent(){scores=[0,0];reds=15;active=0;colorOwed=false;inColorStage=false;lastRedPotted=false;colorAfterLastRed=false;freeBallMode=false;freeBallAvailable=false;streak=0;snookers=[0,0];frameOverLogged=false;newFramePending=true;remainingColors=freshColors();foulPointsReceived=[0,0];swapCounter=0;enableDoubleTap();document.getElementById('matchLog').innerHTML='';document.getElementById('p0-score-input').value="0";document.getElementById('p1-score-input').value="0";document.getElementById('redsInput').value="15";document.getElementById('freeBallBtn').innerText="Free Ball";}
+    function updateNames(){const n0=document.getElementById('p0-name').value||"John",n1=document.getElementById('p1-name').value||"Jane";if(n0!==names[0]||n1!==names[1]){saveState();names[0]=n0;names[1]=n1;resetFrameSilent();updateButtonStates();updateUI();}}
+    
+    function updateScoresFromInput(){const ns0=parseInt(document.getElementById('p0-score-input').value||"0",10),ns1=parseInt(document.getElementById('p1-score-input').value||"0",10);if(ns0!==scores[0]||ns1!==scores[1]){saveState();scores[0]=ns0;scores[1]=ns1;updateStageFlags();addLogEntry(`Score correction: ${names[0]} ${scores[0]}, ${names[1]} ${scores[1]}`, true);enableDoubleTap();normalizeGameState();}}
+    
+    function updateRedsFromInput(){const nr=parseInt(document.getElementById('redsInput').value||"15",10);if(nr!==reds){saveState();reds=nr;updateStageFlags();remainingColors=freshColors();addLogEntry(`Reds correction: ${reds} remaining`, true);enableDoubleTap();normalizeGameState();}}
+    
+    function updateStageFlags(){
+      if(reds === 0){
+        colorAfterLastRed = false;
+        lastRedPotted = false;
+        inColorStage = true;
+        colorOwed = false;
+      } else {
+        colorAfterLastRed = false;
+        lastRedPotted = false;
+        inColorStage = false;
+      }
+    }
+    function getActiveMax(){if(reds===0&&remainingColors.length===0&&!colorAfterLastRed)return(scores[0]===scores[1])?7:0;if(inColorStage)return sumRemainingColors();if(colorAfterLastRed)return 27+7;let base=reds*8+27;if(colorOwed&&reds>0)base+=7;return base;}
+    function getInactiveMax(){if(reds===0&&remainingColors.length===0&&!colorAfterLastRed)return(scores[0]===scores[1])?7:0;if(inColorStage)return sumRemainingColors();if(colorAfterLastRed)return 27;return reds*8+27;}
+    function sumRemainingColors(){return remainingColors.reduce((s,v)=>s+v,0);}
+    function freshColors(){return[2,3,4,5,6,7];}
+    function isFrameOver(){if(reds===0&&remainingColors.length===0&&!colorAfterLastRed)return true;if(reds===0&&remainingColors.length===1&&remainingColors[0]===7&&!colorAfterLastRed)return Math.abs(scores[0]-scores[1])>7;return false;}
+    function getFrameWinner(){if(scores[0]>scores[1])return 0;if(scores[1]>scores[0])return 1;return -1;}
+    
+    function hasCrossedGoalLine(playerIndex) {
+      const opp = 1 - playerIndex;
+      if (colorAfterLastRed && playerIndex !== active) {
+        return scores[playerIndex] > scores[active] + 27;
+      }
+      if (scores[playerIndex] <= scores[opp]) return false;
+      const trailingAvailable = getTrailingPlayerAvailable();
+      return scores[playerIndex] > scores[opp] + trailingAvailable;
+    }
+    
+    function getTrailingPlayerAvailable() {
+      const trailingIndex = scores[0] < scores[1] ? 0 : 1;
+      if (inColorStage) return sumRemainingColors();
+      if (colorAfterLastRed) {
+        return 27;
+      }
+      return (trailingIndex === active) ? getActiveMax() : getInactiveMax();
+    }
+    
+    function resetSwapCounter(){swapCounter=0;}
+    function incrementSwapCounter(){swapCounter++;}
+    
+    function colourStagePointsUpTo(targetBall) {
+      const values = [2,3,4,5,6,7];
+      let sum = 0;
+      for (let v of values) {
+        sum += v;
+        if (v === targetBall) break;
+      }
+      return sum;
+    }
+
+    function calculateColourStage(x, y) {
+      let accumulated = 0;
+      const totalColors = 27;
+      for (let color of [2,3,4,5,6,7]) {
+        accumulated += color;
+        if (x + accumulated > y + (totalColors - accumulated)) {
+          return { needs: accumulated, isTie: false, winningBall: color };
+        }
+        if (x + accumulated === y + (totalColors - accumulated)) {
+          return { needs: accumulated, isTie: true, winningBall: color };
+        }
+      }
+      return null;
+    }
+
+    // ========== ALT CALCULATION ==========
+    function sumColorsTo(ball) {
+      let sum = 0;
+      for (let c = 2; c <= ball; c++) {
+        sum += c;
+      }
+      return sum;
+    }
+
+    function calculateAltNeeds(playerIndex, twoCycleResult) {
+      const playerScore = scores[playerIndex];
+      const opponentScore = scores[1 - playerIndex];
+      
+      const winningBall = twoCycleResult.winningBall || 7;
+      const redsUsed = twoCycleResult.redsUsed || 0;
+      const winLocation = twoCycleResult.winLocation;
+      
+      let colorNeeds = 0;
+      let opponentMax = 0;
+      
+      // Case 1: Red stage win (redStageRed or redStageColor)
+      if (winLocation === 'redStageRed' || winLocation === 'redStageColor') {
+        // Pure math: ALT = opponentMax - playerScore
+        // opponentMax = opponentScore + remaining points after Jane's reds
+        const remainingReds = reds - redsUsed;
+        const remainingPoints = (remainingReds * 8) + 27;
+        opponentMax = opponentScore + remainingPoints;
+        let altTotal = opponentMax - playerScore;
+        // Respect min 3 per red cycle
+        altTotal = Math.max(redsUsed * 3, altTotal);
+        // No ball icon for red stage wins
+        if (altTotal >= twoCycleResult.needs) {
+          return null;
+        }
+        return {
+          needs: altTotal,
+          redStageTotal: altTotal,
+          redsUsed: redsUsed,
+          targetColor: 1,  // Red, but no ball icon shown
+          isTie: (playerScore + altTotal === opponentMax)
+        };
+      }
+      
+      // Case 2: Color stage win (redStageColorCheck, colorStage, colorAfterLastRed)
+      if (winLocation === 'redStageColorCheck' || winLocation === 'colorStage' || winLocation === 'colorAfterLastRed') {
+        colorNeeds = sumColorsTo(winningBall);
+        let higherColors = 0;
+        for (let c = winningBall + 1; c <= 7; c++) {
+          higherColors += c;
+        }
+        opponentMax = opponentScore + higherColors;
+        
+        let redStageNeed = opponentMax - playerScore - colorNeeds;
+        
+        if (redsUsed > 0) {
+          redStageNeed = Math.max(redsUsed * 3, redStageNeed);
+        } else if (colorAfterLastRed) {
+          redStageNeed = Math.max(2, redStageNeed);
+        } else {
+          redStageNeed = Math.max(0, redStageNeed);
+        }
+        
+        const altTotal = redStageNeed + colorNeeds;
+        const isTie = (playerScore + redStageNeed + colorNeeds === opponentMax);
+        
+        if (altTotal >= twoCycleResult.needs) {
+          return null;
+        }
+        
+        return {
+          needs: altTotal,
+          redStageTotal: redStageNeed,
+          redsUsed: redsUsed,
+          targetColor: winningBall,
+          isTie: isTie
+        };
+      }
+      
+      return null;
+    }
+
+    // ========== 2-CYCLE CALCULATION ==========
+    function calculateNeeds(playerIndex) {
+      const opponentIndex = 1 - playerIndex;
+      const x = scores[playerIndex];
+      const y = scores[opponentIndex];
+      const P = reds;
+      
+      if (x > y) {
+        const trailingAvailable = getTrailingPlayerAvailable();
+        if (x > y + trailingAvailable) {
+          return { needs: 0, isTie: false, isFoulPoints: false, winLocation: 'goalLine', winningBall: null, redsUsed: 0 };
+        }
+        if (x === y + trailingAvailable) {
+          return { needs: 0, isTie: true, isFoulPoints: false, winLocation: 'goalLine', winningBall: null, redsUsed: 0 };
+        }
+      }
+      
+      if (colorAfterLastRed) {
+        if (playerIndex !== active) {
+          const remainingPoints = 27;
+          let accumulated = 0;
+          for (let color of [2,3,4,5,6,7]) {
+            accumulated += color;
+            if (x + accumulated > y + (remainingPoints - accumulated)) {
+              return { needs: accumulated, isTie: false, winLocation: 'colorStage', winningBall: color, redsUsed: 0 };
+            }
+            if (x + accumulated === y + (remainingPoints - accumulated)) {
+              return { needs: accumulated, isTie: true, winLocation: 'colorStage', winningBall: color, redsUsed: 0 };
+            }
+          }
+          return { needs: 0, isTie: false, winLocation: null, winningBall: null, redsUsed: 0 };
+        }
+        
+        // Test 0 (miss) and colors 2-7 in red stage
+        for (let color of [0, 2, 3, 4, 5, 6, 7]) {
+          const playerTotal = x + color;
+          const opponentMax = y + 27;
+          if (playerTotal >= opponentMax) {
+            const isTie = (playerTotal === opponentMax);
+            return {
+              needs: color,
+              isTie: isTie,
+              winLocation: 'colorAfterLastRed',
+              winningBall: color,
+              redsUsed: 0
+            };
+          }
+        }
+        
+        // None worked - use Black (7) as best red stage result
+        const bestRedScore = x + 7;
+        let colorNeeds = 0;
+        let winningBall = 7;
+        let accumulated = 0;
+        
+        for (let color of [2, 3, 4, 5, 6, 7]) {
+          accumulated += color;
+          const playerTotal = bestRedScore + accumulated;
+          const opponentTotal = y + (27 - accumulated);
+          if (playerTotal >= opponentTotal) {
+            colorNeeds = accumulated;
+            winningBall = color;
+            break;
+          }
+        }
+        
+        const totalNeeds = 7 + colorNeeds;
+        const isTie = (bestRedScore + colorNeeds === y + (27 - colorNeeds));
+        
+        return {
+          needs: totalNeeds,
+          isTie: isTie,
+          winLocation: 'colorAfterLastRed',
+          winningBall: winningBall,
+          redsUsed: 0
+        };
+      }
+      
+      if (P > 0 && !inColorStage && !colorAfterLastRed) {
+        let q = 0;
+        let cycleRedCount = 0;
+        const totalCycles = (playerIndex === active && colorOwed) ? P + 1 : P;
+        
+        for (let n = 1; n <= totalCycles; n++) {
+          let m;
+          if (playerIndex === active && colorOwed) {
+            if (n === 1) {
+              m = P;
+            } else {
+              m = P - (n - 1);
+              cycleRedCount++;
+            }
+          } else {
+            m = P - n;
+            cycleRedCount++;
+          }
+          
+          const opponentMax = m * 8 + 27;
+          const colorsToCheck = (playerIndex === active && colorOwed && n === 1) ? [2,3,4,5,6,7] : [0,2,3,4,5,6,7];
+          
+          for (let c of colorsToCheck) {
+            let v;
+            if (playerIndex === active && colorOwed && n === 1) {
+              if (c === 0) continue;
+              v = q + c;
+            } else {
+              if (c === 0 && playerIndex === active && colorOwed && n === 1) continue;
+              v = q + 1 + c;
+            }
+            const x_plus_v = x + v;
+            const y_plus_oppMax = y + opponentMax;
+            const isWin = x_plus_v > y_plus_oppMax;
+            const isTie = x_plus_v === y_plus_oppMax;
+            
+            if (isWin || isTie) {
+              if (c === 0) {
+                return { needs: v, isTie: isTie, winLocation: 'redStageRed', winningBall: 1, redsUsed: cycleRedCount };
+              } else if (playerIndex === active && colorOwed && n === 1) {
+                return { needs: v, isTie: isTie, winLocation: 'colorCycle', winningBall: c, redsUsed: cycleRedCount };
+              } else {
+                return { needs: v, isTie: isTie, winLocation: 'redStageColor', winningBall: c, redsUsed: cycleRedCount };
+              }
+            }
+          }
+          
+          if (playerIndex === active && colorOwed && n === 1) {
+            q = q + 7;
+          } else {
+            q = q + 1 + 7;
+          }
+        }
+        
+        let playerAccumulated = 0;
+        const colorSequence = [2, 3, 4, 5, 6, 7];
+        for (let color of colorSequence) {
+          playerAccumulated += color;
+          const v = q + playerAccumulated;
+          const opponentGets = 27 - playerAccumulated;
+          if (x + v > y + opponentGets) {
+            return { needs: v, isTie: false, winLocation: 'redStageColorCheck', winningBall: color, redsUsed: cycleRedCount };
+          }
+          if (x + v === y + opponentGets) {
+            return { needs: v, isTie: true, winLocation: 'redStageColorCheck', winningBall: color, redsUsed: cycleRedCount };
+          }
+        }
+        return { needs: 0, isTie: false, winLocation: null, winningBall: null, redsUsed: 0 };
+      }
+      
+      if (inColorStage || (P === 0 && !colorAfterLastRed)) {
+        let accumulated = 0;
+        const totalColors = sumRemainingColors();
+        for (let color of [2,3,4,5,6,7]) {
+          if (!remainingColors.includes(color)) continue;
+          accumulated += color;
+          if (x + accumulated > y + (totalColors - accumulated)) {
+            return { needs: accumulated, isTie: false, winLocation: 'colorStage', winningBall: color, redsUsed: 0 };
+          }
+          if (x + accumulated === y + (totalColors - accumulated)) {
+            return { needs: accumulated, isTie: true, winLocation: 'colorStage', winningBall: color, redsUsed: 0 };
+          }
+        }
+        return { needs: 0, isTie: false, winLocation: null, winningBall: null, redsUsed: 0 };
+      }
+      
+      return { needs: 0, isTie: false, winLocation: null, winningBall: null, redsUsed: 0 };
+    }
+
+    function formatNeeds(needsResult) {
+      if (needsResult.isTie) return `${needsResult.needs}t`;
+      if (needsResult.isFoulPoints) return `F+${needsResult.needs}`;
+      return needsResult.needs;
+    }
+    
+    function redo(){if(redoHistory.length===0){undoRedoMode='undo';document.getElementById('undoBtn').innerText='↶ Undo';showTxtFloat(document.getElementById('undoBtn'),'Undo (Redo empty)');addLogEntry(`Undo/Redo mode: Undo (Redo stack empty)`, false);return;}showTxtFloat(document.getElementById('undoBtn'),'↷');const next=redoHistory.pop();scores=[...next.s];reds=next.r;active=next.a;remainingColors=[...next.c];streak=next.st;colorOwed=next.owed;inColorStage=next.ics;lastRedPotted=next.lrp;freeBallAvailable=next.fba;colorAfterLastRed=next.calr;snookers=next.snk?[...next.snk]:[0,0];newFramePending=next.nfp||false;frameOverLogged=next.fol||false;freeBallMode=next.freeBallMode||false;foulPointsReceived=next.foulPointsReceived?[...next.foulPointsReceived]:[0,0];swapCounter=0;enableDoubleTap();history.push(next);document.getElementById('matchLog').innerHTML=next.log||'';updateButtonStates();updateUI();}
+    function undo(){if(history.length===0){showTxtFloat(document.getElementById('undoBtn'),'⛔');return;}showTxtFloat(document.getElementById('undoBtn'),'↶');const last=history.pop();const currentState={s:[...scores],r:reds,a:active,c:[...remainingColors],st:streak,owed:colorOwed,ics:inColorStage,calr:colorAfterLastRed,lrp:lastRedPotted,fba:freeBallAvailable,snk:[...snookers],nfp:newFramePending,fol:frameOverLogged,freeBallMode:freeBallMode,foulPointsReceived:[...foulPointsReceived],swapCounter:swapCounter,doubleTapValid:doubleTapValid,log:document.getElementById('matchLog').innerHTML};redoHistory.push(currentState);scores=[...last.s];reds=last.r;active=last.a;remainingColors=[...last.c];streak=last.st;colorOwed=last.owed;inColorStage=last.ics;lastRedPotted=last.lrp;freeBallAvailable=last.fba;colorAfterLastRed=last.calr;snookers=last.snk?[...last.snk]:[0,0];newFramePending=last.nfp||false;frameOverLogged=last.fol||false;freeBallMode=last.freeBallMode||false;foulPointsReceived=last.foulPointsReceived?[...last.foulPointsReceived]:[0,0];swapCounter=0;enableDoubleTap();document.getElementById('matchLog').innerHTML=last.log||'';updateButtonStates();updateUI();}
+    
+    function addFoulLogEntry(offenderIdx, victimIdx, foulPoints) {
+      foulPointsReceived[victimIdx] += foulPoints;
+      const totalFouls = foulPointsReceived[victimIdx];
+      addLogEntry(`${names[offenderIdx]} fouled +${foulPoints} to ${names[victimIdx]} (${totalFouls})`, true);
+    }
+    
+    function addLogEntry(text, showScore = true) {
+      const log = document.getElementById('matchLog');
+      const entry = document.createElement('div');
+      entry.style.marginBottom = '2px';
+      entry.style.color = '#aaa';
+      let fullText = `> ${text}`;
+      if (showScore) {
+        fullText += `  ${scores[0]}:${scores[1]}`;
+      }
+      entry.innerText = fullText;
+      log.insertBefore(entry, log.firstChild);
+    }
+    
+    function logSwap(playerName, showScore = false) {
+      let tableInfo;
+      if (inColorStage) {
+        const pts = remainingColors.reduce((s,v)=>s+v,0);
+        const colorNames = remainingColors.map(c=>ballNames[c]).join(' ');
+        tableInfo = `${colorNames} — ${pts} pts`;
+      } else if (colorAfterLastRed) {
+        tableInfo = `colors — 27 pts`;
+      } else {
+        const pts = reds * 8 + 27;
+        tableInfo = `${reds} red${reds !== 1 ? 's' : ''} — ${pts} pts`;
+      }
+      addLogEntry(`Swap #${swapCounter}: ${playerName} to break | ${tableInfo}`, showScore);
+    }
+
+    // ========== FORMAT ALT DISPLAY ==========
+    function formatAltDisplay(altResult, redsUsed) {
+      if (!altResult) return '';
+      
+      // For red stage wins (targetColor = 1), no ball icon
+      const showBall = altResult.targetColor >= 2;
+      
+      const altText = `<span style="color:var(--alt-color)"> | ${formatNeeds({ needs: altResult.needs, isTie: altResult.isTie || false })} | ${redsUsed}/${altResult.redStageTotal}</span>`;
+      
+      if (showBall) {
+        const bc = {2:'#ffd400',3:'#138a36',4:'#8b5a2b',5:'#4a90d9',6:'#ff4e9b',7:'#222'}[altResult.targetColor] || '#fff';
+        const bb = altResult.targetColor === 7 ? 'border:2px solid #ffd700;' : '';
+        const bi = `<span style="display:inline-block;width:22px;height:22px;border-radius:50%;background:${bc};${bb}vertical-align:middle;margin-left:3px;box-shadow:0 2px 4px rgba(0,0,0,0.5);position:relative;top:-4px;"></span>`;
+        return altText + bi;
+      }
+      
+      return altText;
+    }
+
+    // ========== BALL CIRCLE HELPER ==========
+    function winBallCircle(needs) {
+      const wb = needs.winningBall;
+      if (!wb || wb < 2) return '';
+      const bc = {2:'#ffd400',3:'#138a36',4:'#8b5a2b',5:'#4a90d9',6:'#ff4e9b',7:'#222'}[wb] || '#fff';
+      const bb = wb === 7 ? 'border:2px solid #ffd700;' : '';
+      return `<span style="display:inline-block;width:22px;height:22px;border-radius:50%;background:${bc};${bb}vertical-align:middle;margin-left:3px;box-shadow:0 2px 4px rgba(0,0,0,0.5);position:relative;top:-4px;"></span>`;
+    }
+
+    // ========== UI UPDATE ==========
+    function updateUI() {
+      document.getElementById('p0-score-input').value = scores[0];
+      document.getElementById('p1-score-input').value = scores[1];
+      if (active === 0) { document.getElementById('p0-available').innerText = getActiveMax(); document.getElementById('p1-available').innerText = getInactiveMax(); }
+      else { document.getElementById('p0-available').innerText = getInactiveMax(); document.getElementById('p1-available').innerText = getActiveMax(); }
+      document.getElementById('stkDisp').innerText = streak;
+      document.getElementById('redsInput').value = reds;
+      document.getElementById('p0-box').className = active === 0 ? 'player-box active' : 'player-box';
+      document.getElementById('p1-box').className = active === 1 ? 'player-box active' : 'player-box';
+      document.getElementById('p0-score-box').className = active === 0 ? 'score-box active' : 'score-box';
+      document.getElementById('p1-score-box').className = active === 1 ? 'score-box active' : 'score-box';
+      document.getElementById('p0-name').value = names[0];
+      document.getElementById('p1-name').value = names[1];
+      
+      if (isFrameOver()) { const w = getFrameWinner(); let msg = w === 0 ? `Frame over - ${names[0]} wins` : w === 1 ? `Frame over - ${names[1]} wins` : "Tie: re-spot Black"; document.getElementById('statusLine').innerHTML = `<span style="color:#ffd966">${msg}</span>`; if (!frameOverLogged) { frameOverLogged = true; addLogEntry(msg, true); } return; }
+      frameOverLogged = false;
+      
+      const colorWinLocs = ['colorAfterLastRed','colorStage','redStageColorCheck'];
+      const redStageWinLocs = ['redStageRed','redStageColor'];
+      
+      const p0Crossed = hasCrossedGoalLine(0);
+      const p1Crossed = hasCrossedGoalLine(1);
+      
+      const p0Needs = calculateNeeds(0);
+      const p1Needs = calculateNeeds(1);
+      
+      let p0Alt = null, p1Alt = null;
+      if (reds <= 8) {
+        // For red stage wins (redStageRed or redStageColor), calculate ALT (pure math)
+        if (redStageWinLocs.includes(p0Needs.winLocation)) p0Alt = calculateAltNeeds(0, p0Needs);
+        if (redStageWinLocs.includes(p1Needs.winLocation)) p1Alt = calculateAltNeeds(1, p1Needs);
+        // For color stage wins, calculate ALT using existing logic
+        if (colorWinLocs.includes(p0Needs.winLocation)) p0Alt = calculateAltNeeds(0, p0Needs);
+        if (colorWinLocs.includes(p1Needs.winLocation)) p1Alt = calculateAltNeeds(1, p1Needs);
+      }
+      
+      let p0Str = `<span style="color:#ffd966">${names[0]} ${formatNeeds(p0Needs)}</span>`;
+      let p1Str = `<span style="color:#ffd966">${names[1]} ${formatNeeds(p1Needs)}</span>`;
+      
+      // Ball circle only for color stage wins (no ALT duplication)
+      const p0ShowBall = !p0Alt && colorWinLocs.includes(p0Needs.winLocation);
+      const p1ShowBall = !p1Alt && colorWinLocs.includes(p1Needs.winLocation);
+      if (p0ShowBall) p0Str += winBallCircle(p0Needs);
+      if (p1ShowBall) p1Str += winBallCircle(p1Needs);
+      
+      if (p0Alt) p0Str += formatAltDisplay(p0Alt, p0Needs.redsUsed);
+      if (p1Alt) p1Str += formatAltDisplay(p1Alt, p1Needs.redsUsed);
+      
+      // Crossed display logic
+      if (p0Crossed) {
+        const activeHasPath = (p1Needs.winLocation !== null && p1Needs.winLocation !== 'goalLine');
+        if (activeHasPath) {
+          let display = `<span style="color:#ffd966">${names[0]} Crossed`;
+          if (p1Str) display += `, ${p1Str}`;
+          display += `</span>`;
+          document.getElementById('statusLine').innerHTML = display;
+        } else {
+          const trail = getTrailingPlayerAvailable();
+          const foulNeeded = Math.max(0, scores[0] - (scores[1] + trail));
+          document.getElementById('statusLine').innerHTML = `<span style="color:#ffd966">${names[0]} Crossed, ${names[1]} Need F+${foulNeeded}</span>`;
+        }
+        return;
+      }
+      if (p1Crossed) {
+        const activeHasPath = (p0Needs.winLocation !== null && p0Needs.winLocation !== 'goalLine');
+        if (activeHasPath) {
+          let display = `<span style="color:#ffd966">${names[1]} Crossed`;
+          if (p0Str) display += `, ${p0Str}`;
+          display += `</span>`;
+          document.getElementById('statusLine').innerHTML = display;
+        } else {
+          const trail = getTrailingPlayerAvailable();
+          const foulNeeded = Math.max(0, scores[1] - (scores[0] + trail));
+          document.getElementById('statusLine').innerHTML = `<span style="color:#ffd966">${names[1]} Crossed, ${names[0]} Need F+${foulNeeded}</span>`;
+        }
+        return;
+      }
+      
+      document.getElementById('statusLine').innerHTML = `${p0Str}, ${p1Str}`;
+    }
+
+    function pot(pts, btn) {
+      if (btn.classList.contains('disabled')) return;
+      checkNewFrame();
+      names[0] = document.getElementById('p0-name').value || "John";
+      names[1] = document.getElementById('p1-name').value || "Jane";
+      scores[0] = parseInt(document.getElementById('p0-score-input').value || "0", 10);
+      scores[1] = parseInt(document.getElementById('p1-score-input').value || "0", 10);
+      saveState();
+      let scored = pts, logEntry = "", newStreak = streak + scored;
+      resetSwapCounter();
+      disableDoubleTap();
+      if (freeBallMode && reds > 0 && !inColorStage && !colorAfterLastRed) {
+        scored = 1;
+        newStreak = streak + scored;
+        colorOwed = true;
+        logEntry = `${names[active]}: Free Ball ${ballNames[pts]} +1 [Break: ${newStreak}]`;
+        freeBallMode = false; freeBallAvailable = false;
+        showFloat(btn, scored, ballFloatColors[pts]);
+      } else if (freeBallMode && inColorStage) {
+        let ballOn = remainingColors.length > 0 ? remainingColors[0] : null;
+        if (!ballOn) { undo(); return; }
+        scored = ballOn;
+        newStreak = streak + scored;
+        logEntry = `${names[active]}: Free Ball ${ballNames[pts]} as ${ballNames[ballOn]} +${ballOn} [Break: ${newStreak}]`;
+        freeBallMode = false; freeBallAvailable = false;
+        showFloat(btn, scored, ballFloatColors[ballOn]);
+      } else if (pts === 1) {
+        if (reds > 0) reds -= 1;
+        if (reds === 0) { lastRedPotted = true; colorAfterLastRed = true; }
+        colorOwed = true;
+        logEntry = `${names[active]}: Pot Red +1 [Break: ${newStreak}]`;
+        showFloat(btn, scored, ballFloatColors[pts]);
+      } else {
+        if (colorAfterLastRed) {
+          scored = pts;
+          newStreak = streak + scored;
+          colorAfterLastRed = false; lastRedPotted = false; inColorStage = true;
+          remainingColors = freshColors(); colorOwed = false;
+          logEntry = `${names[active]}: Pot ${ballNames[pts]} +${pts} [Break: ${newStreak}]`;
+          showFloat(btn, scored, ballFloatColors[pts]);
+        } else if (inColorStage) {
+          let ballOn = remainingColors.length > 0 ? remainingColors[0] : null;
+          if (!ballOn) { undo(); return; }
+          if (pts === ballOn) {
+            const idx = remainingColors.indexOf(pts);
+            if (idx !== -1) remainingColors.splice(idx, 1);
+            if (remainingColors.length === 0) inColorStage = false;
+            logEntry = `${names[active]}: Pot ${ballNames[pts]} +${pts} [Break: ${newStreak}]`;
+            showFloat(btn, scored, ballFloatColors[pts]);
+          } else {
+            const foulValue = Math.max(4, pts);
+            scores[1 - active] += foulValue;
+            streak = 0; freeBallAvailable = true;
+            resetSwapCounter();
+            disableDoubleTap();
+            addFoulLogEntry(active, 1 - active, foulValue);
+            updateUI(); updateButtonStates(); swap(true);
+            return;
+          }
+        } else {
+          scored = pts;
+          newStreak = streak + scored;
+          colorOwed = false;
+          logEntry = `${names[active]}: Pot ${ballNames[pts]} +${pts} [Break: ${newStreak}]`;
+          showFloat(btn, scored, ballFloatColors[pts]);
+        }
+      }
+      scores[active] += scored;
+      streak = newStreak;
+      document.getElementById('freeBallBtn').innerText = "Free Ball";
+      addLogEntry(logEntry, true);
+      updateButtonStates();
+      updateUI();
+      if (isFrameOver() && remainingColors.length === 0) setTimeout(() => autoEndFrame(), 1200);
+    }
+
+    function foul(p) {
+      checkNewFrame();
+      names[0] = document.getElementById('p0-name').value || "John";
+      names[1] = document.getElementById('p1-name').value || "Jane";
+      scores[0] = parseInt(document.getElementById('p0-score-input').value || "0", 10);
+      scores[1] = parseInt(document.getElementById('p1-score-input').value || "0", 10);
+      const fBtn = event.target;
+      const fF = document.createElement('div');
+      fF.className = 'float-points';
+      fF.style.color = foulFloatColors[p] || '#fff';
+      fF.innerText = '+' + p;
+      fBtn.appendChild(fF);
+      setTimeout(() => fF.remove(), 1800);
+      saveState();
+      scores[1 - active] += p;
+      freeBallAvailable = true;
+      colorOwed = false;
+      resetSwapCounter();
+      disableDoubleTap();
+      addFoulLogEntry(active, 1 - active, p);
+      if (colorAfterLastRed) { colorAfterLastRed = false; lastRedPotted = false; inColorStage = true; remainingColors = freshColors(); }
+      swap(true);
+    }
+
+    function swap(auto = false) {
+      if (!auto) {
+        checkNewFrame();
+        showTxtFloat(document.getElementById('swapBtn'), '⇄');
+        names[0] = document.getElementById('p0-name').value || "John";
+        names[1] = document.getElementById('p1-name').value || "Jane";
+        scores[0] = parseInt(document.getElementById('p0-score-input').value || "0", 10);
+        scores[1] = parseInt(document.getElementById('p1-score-input').value || "0", 10);
+        saveState();
+        incrementSwapCounter();
+        disableDoubleTap();
+      }
+      active = 1 - active;
+      streak = 0;
+      colorOwed = false;
+      freeBallMode = false;
+      document.getElementById('freeBallBtn').innerText = "Free Ball";
+      if (colorAfterLastRed) { colorAfterLastRed = false; lastRedPotted = false; inColorStage = true; remainingColors = freshColors(); }
+      logSwap(names[active], false);
+      updateButtonStates();
+      updateUI();
+    }
+
+    function saveState() { redoHistory = []; if (history.length > 30) history.shift(); history.push({ s: [...scores], r: reds, a: active, c: [...remainingColors], st: streak, owed: colorOwed, ics: inColorStage, calr: colorAfterLastRed, lrp: lastRedPotted, fba: freeBallAvailable, snk: [...snookers], nfp: newFramePending, fol: frameOverLogged, freeBallMode: freeBallMode, foulPointsReceived: [...foulPointsReceived], swapCounter: swapCounter, doubleTapValid: doubleTapValid, log: document.getElementById('matchLog').innerHTML }); }
+    function exportLog() { showTxtFloat(event.target, '📄'); const now = new Date(); const dateStr = now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }); const timeStr = now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }); const header = `Snooker Match Log\nDate: ${dateStr} ${timeStr}\nPlayers: ${names[0]} vs ${names[1]}\n${'='.repeat(40)}\n\n`; const logContent = document.getElementById('matchLog').innerText; const blob = new Blob([header + logContent], {type:'text/plain;charset=utf-8'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `snooker-${names[0]}-vs-${names[1]}-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.txt`; a.click(); URL.revokeObjectURL(url); }
+    function fullReset() {
+      showTxtFloat(document.getElementById('resetBtn'), '🔄');
+      saveState();
+      scores=[0,0]; reds=15; active=0; colorOwed=false; inColorStage=false;
+      lastRedPotted=false; colorAfterLastRed=false; freeBallMode=false;
+      freeBallAvailable=false; streak=0; remainingColors=freshColors();
+      snookers=[0,0]; frameOverLogged=false; newFramePending=false;
+      redoHistory=[]; undoRedoMode='undo'; foulPointsReceived=[0,0];
+      swapCounter=0; enableDoubleTap();
+      document.getElementById('undoBtn').innerText='↶ Undo';
+      document.getElementById('p0-score-input').value="0";
+      document.getElementById('p1-score-input').value="0";
+      document.getElementById('redsInput').value="15";
+      document.getElementById('freeBallBtn').innerText="Free Ball";
+      document.getElementById('matchLog').innerHTML='';
+      names[0]="John"; names[1]="Jane";
+      document.getElementById('p0-name').value="John";
+      document.getElementById('p1-name').value="Jane";
+      document.getElementById('p0-img').src='';
+      document.getElementById('p0-img').style.display='none';
+      document.getElementById('p1-img').src='';
+      document.getElementById('p1-img').style.display='none';
+      addLogEntry(`Full reset - new frame started`, false);
+      updateButtonStates(); updateUI();
+    }
+
+    function handleReset() { showTxtFloat(document.getElementById('resetBtn'), '🔄'); saveState(); scores = [0,0]; reds = 15; active = 0; colorOwed = false; inColorStage = false; lastRedPotted = false; colorAfterLastRed = false; freeBallMode = false; freeBallAvailable = false; streak = 0; remainingColors = freshColors(); snookers = [0,0]; frameOverLogged = false; newFramePending = false; redoHistory = []; undoRedoMode = 'undo'; foulPointsReceived = [0,0]; swapCounter = 0; enableDoubleTap(); document.getElementById('undoBtn').innerText = '↶ Undo'; document.getElementById('p0-score-input').value = "0"; document.getElementById('p1-score-input').value = "0"; document.getElementById('redsInput').value = "15"; document.getElementById('freeBallBtn').innerText = "Free Ball"; document.getElementById('matchLog').innerHTML = ''; addLogEntry(`Frame reset - new frame started`, false); updateButtonStates(); updateUI(); }
+    function toggleFreeBall() { if (!freeBallAvailable) return; showTxtFloat(event.target, freeBallMode ? '❌' : '✓'); saveState(); freeBallMode = !freeBallMode; document.getElementById('freeBallBtn').innerText = freeBallMode ? "Free Ball*" : "Free Ball"; addLogEntry(`Free Ball: ${freeBallMode ? 'ON' : 'OFF'}`, false); updateButtonStates(); updateUI(); }
+    function removeRed() { window._removeRedFromBtn(event.target); }
+    function _removeRedFromBtn(btn) { if (reds > 0) { checkNewFrame(); names[0] = document.getElementById('p0-name').value || "John"; names[1] = document.getElementById('p1-name').value || "Jane"; scores[0] = parseInt(document.getElementById('p0-score-input').value || "0", 10); scores[1] = parseInt(document.getElementById('p1-score-input').value || "0", 10); saveState(); reds -= 1; updateStageFlags(); addLogEntry(`Manual: Red removed from table (${reds} remaining)`, true); if (reds === 0) { lastRedPotted = true; colorAfterLastRed = true; } updateUI(); updateButtonStates(); } }
+    function snooker() { 
+      showTxtFloat(event.target, '🔄'); 
+      checkNewFrame(); 
+      names[0] = document.getElementById('p0-name').value || "John"; 
+      names[1] = document.getElementById('p1-name').value || "Jane"; 
+      scores[0] = parseInt(document.getElementById('p0-score-input').value || "0", 10); 
+      scores[1] = parseInt(document.getElementById('p1-score-input').value || "0", 10); 
+      saveState(); 
+      const offender = names[active]; 
+      const offenderIdx = active; 
+      active = 1 - active; 
+      streak = 0; 
+      colorOwed = false; 
+      freeBallMode = false; 
+      document.getElementById('freeBallBtn').innerText = "Free Ball"; 
+      snookers[offenderIdx] += 1; 
+      incrementSwapCounter(); 
+      disableDoubleTap(); 
+      addLogEntry(`${offender} leaves ${names[active]} snookered #${snookers[offenderIdx]}`, false); 
+      if (colorAfterLastRed) { colorAfterLastRed = false; lastRedPotted = false; inColorStage = true; remainingColors = freshColors(); } 
+      logSwap(names[active], false); 
+      updateButtonStates(); 
+      updateUI(); 
+    }
+    function autoEndFrame() { const winner = scores[0] > scores[1] ? names[0] : scores[1] > scores[0] ? names[1] : null; const finalScore0 = scores[0], finalScore1 = scores[1]; showTxtFloat(document.getElementById('swapBtn'), '🏆'); scores = [0,0]; reds = 15; active = 0; colorOwed = false; inColorStage = false; lastRedPotted = false; colorAfterLastRed = false; freeBallMode = false; freeBallAvailable = false; streak = 0; snookers = [0,0]; frameOverLogged = false; newFramePending = false; remainingColors = freshColors(); foulPointsReceived = [0,0]; swapCounter = 0; enableDoubleTap(); document.getElementById('p0-score-input').value = "0"; document.getElementById('p1-score-input').value = "0"; document.getElementById('redsInput').value = "15"; document.getElementById('freeBallBtn').innerText = "Free Ball"; const winnerScore = finalScore0 > finalScore1 ? finalScore0 : finalScore1; const loserScore = finalScore0 > finalScore1 ? finalScore1 : finalScore0; if (winner) addLogEntry(`Frame over - ${winner} wins (${winnerScore} - ${loserScore})`, false); else addLogEntry(`Frame over - Tie (${finalScore0} - ${finalScore1})`, false); newFramePending = true; updateButtonStates(); updateUI(); }
+    function showFloat(btn, pts, color) { const f = document.createElement('div'); f.className = 'float-points'; if (color) f.style.color = color; f.innerText = (pts > 0 ? '+' : '') + pts; btn.appendChild(f); setTimeout(() => f.remove(), 2200); }
+    function showTxtFloat(btn, txt) { const f = document.createElement('div'); f.className = 'float-txt'; f.innerText = txt; btn.appendChild(f); setTimeout(() => f.remove(), 2200); }
+    function updateButtonStates() {
+      if (isFrameOver()) { for (let i=1;i<=7;i++) { if (ballButtons[i]) { ballButtons[i].classList.remove('ball-on'); if (i===7) ballButtons[i].classList.remove('disabled'); else ballButtons[i].classList.add('disabled'); } } ['foulBtn4','foulBtn5','foulBtn6','foulBtn7','freeBallBtn','snookerBtn','swapBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('disabled');}); document.getElementById('undoBtn').classList.remove('disabled'); return; }
+      ['foulBtn4','foulBtn5','foulBtn6','foulBtn7','freeBallBtn','undoBtn','snookerBtn','swapBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('disabled');}); for(let i=1;i<=7;i++) if(ballButtons[i]){ballButtons[i].classList.remove('disabled');ballButtons[i].classList.remove('ball-on');}
+      if(inColorStage){ballButtons[1].classList.add('disabled');for(let i=2;i<=7;i++)remainingColors.includes(i)?ballButtons[i].classList.remove('disabled'):ballButtons[i].classList.add('disabled');if(remainingColors.length>0)ballButtons[remainingColors[0]].classList.add('ball-on');return;}
+      if(colorAfterLastRed){ballButtons[1].classList.add('disabled');for(let i=2;i<=7;i++)ballButtons[i].classList.remove('disabled');return;}
+      if(reds>0){ballButtons[1].classList.remove('disabled');if(freeBallMode)for(let i=2;i<=7;i++)ballButtons[i].classList.remove('disabled');else for(let i=2;i<=7;i++)colorOwed?ballButtons[i].classList.remove('disabled'):ballButtons[i].classList.add('disabled');return;}
+      if(reds===0&&!colorAfterLastRed){inColorStage=true;ballButtons[1].classList.add('disabled');for(let i=2;i<=7;i++)ballButtons[i].classList.remove('disabled');if(remainingColors.length>0)ballButtons[remainingColors[0]].classList.add('ball-on');return;}
+      for(let i=1;i<=7;i++)ballButtons[i].classList.add('disabled');
+    }
+    function previewImg(event,playerIndex){const file=event.target.files[0];if(file){const reader=new FileReader();reader.onload=e=>{const img=document.getElementById(`p${playerIndex}-img`);img.src=e.target.result;img.style.display='';};reader.readAsDataURL(file);let fileName=file.name;let playerName=fileName.replace(/\.[^/.]+$/,"").replace(/[_-]/g," ").replace(/\b\w/g,l=>l.toUpperCase());document.getElementById(`p${playerIndex}-name`).value=playerName;updateNames();}}
+    function init(){
+      remainingColors=freshColors();updateButtonStates();updateUI();
+      addLogEntry(`Frame started: ${names[0]} vs ${names[1]} (${reds} reds)`, false);
+      addLogEntry(`${names[active]} to break`, false);
+    }
+    (function setupResetBtn(){
+      const btn = document.getElementById('resetBtn');
+      let longTimer = null, longFired = false;
+      function startPress(e){ e.preventDefault(); longFired=false; longTimer=setTimeout(function(){ longFired=true; fullReset(); },600); }
+      function endPress(e){ e.preventDefault(); if(longTimer){clearTimeout(longTimer);longTimer=null;} if(!longFired) handleReset(); longFired=false; }
+      function cancelPress(e){ if(longTimer){clearTimeout(longTimer);longTimer=null;} longFired=false; }
+      btn.addEventListener('touchstart',startPress,{passive:false});
+      btn.addEventListener('touchend',endPress,{passive:false});
+      btn.addEventListener('touchcancel',cancelPress,{passive:false});
+      btn.addEventListener('mousedown',startPress);
+      btn.addEventListener('mouseup',endPress);
+      btn.addEventListener('mouseleave',cancelPress);
+    })();
+    init();
+    window.updateNames=updateNames;window.updateScoresFromInput=updateScoresFromInput;window.updateRedsFromInput=updateRedsFromInput;window.pot=pot;window.foul=foul;window.swap=swap;window.undo=undo;window.redo=redo;window.exportLog=exportLog;window.handleReset=handleReset;window.fullReset=fullReset;window.toggleFreeBall=toggleFreeBall;window.removeRed=removeRed;window._removeRedFromBtn=_removeRedFromBtn;window.previewImg=previewImg;window.snooker=snooker;
+  </script>
+</body>
+</html>
